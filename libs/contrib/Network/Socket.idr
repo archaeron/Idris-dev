@@ -54,7 +54,7 @@ EAGAIN = 11
 
 -- -------------------------------------------------------------- [ Interfaces ]
 
-export
+public export
 interface ToCode a where
   toCode : a -> Int
 
@@ -81,12 +81,13 @@ Show SocketFamily where
   show AF_INET   = "AF_INET"
   show AF_INET6  = "AF_INET6"
 
-export
+public export
 ToCode SocketFamily where
   toCode AF_UNSPEC = 0
   toCode AF_INET   = 2
   toCode AF_INET6  = 10
 
+public export
 getSocketFamily : Int -> Maybe SocketFamily
 getSocketFamily i =
     Prelude.List.lookup i [ (0, AF_UNSPEC)
@@ -127,12 +128,13 @@ ToCode SocketType where
 -- ---------------------------------------------------------------- [ Pointers ]
 
 data RecvStructPtr = RSPtr Ptr
+public export
 data RecvfromStructPtr = RFPtr Ptr
 
-export
+public export
 data BufPtr = BPtr Ptr
 
-export
+public export
 data SockaddrPtr = SAPtr Ptr
 
 -- --------------------------------------------------------------- [ Addresses ]
@@ -150,7 +152,7 @@ data SocketAddress : Type where
   ||| Used when there's a parse error
   InvalidAddress : SocketAddress
 
-export
+public export
 Show SocketAddress where
   show (IPv4Addr i1 i2 i3 i4) = concat $ Prelude.List.intersperse "." (map show [i1, i2, i3, i4])
   show IPv6Addr               = "NOT IMPLEMENTED YET"
@@ -194,7 +196,7 @@ sock_alloc bl = map BPtr $ foreign FFI_C "idrnet_malloc" (Int -> IO Ptr) bl
 
 -- ----------------------------------------------------------------- [ Sockets ]
 ||| The metadata about a socket
-export
+public export
 record Socket where
   constructor MkSocket
   descriptor     : SocketDescriptor
@@ -292,6 +294,7 @@ parseIPv4 str =
     splitted = map toInt (Prelude.Strings.split (\c => c == '.') str)
 
 ||| Retrieves a socket address from a sockaddr pointer
+public export
 getSockAddr : SockaddrPtr -> IO SocketAddress
 getSockAddr (SAPtr ptr) = do
   addr_family_int <- foreign FFI_C "idrnet_sockaddr_family"
@@ -366,6 +369,7 @@ freeRecvStruct (RSPtr p) =
             p
 
 ||| Utility to extract data.
+public export
 freeRecvfromStruct : RecvfromStructPtr -> IO ()
 freeRecvfromStruct (RFPtr p) =
     foreign FFI_C "idrnet_free_recvfrom_struct"
@@ -421,6 +425,7 @@ recv sock len = do
 ||| @sock The socket on which to send the message.
 ||| @ptr  The location containing the data to send.
 ||| @len  How much of the data to send.
+export
 sendBuf : (sock : Socket)
        -> (ptr  : BufPtr)
        -> (len  : ByteLength)
@@ -442,6 +447,7 @@ sendBuf sock (BPtr ptr) len = do
 ||| @sock The socket on which to receive the message.
 ||| @ptr  The location containing the data to receive.
 ||| @len  How much of the data to receive.
+export
 recvBuf : (sock : Socket)
        -> (ptr  : BufPtr)
        -> (len  : ByteLength)
@@ -489,6 +495,7 @@ sendTo sock addr p dat = do
 ||| @port The port on which to send the message.
 ||| @ptr  A Pointer to the buffer containing the message.
 ||| @len  The size of the message.
+public export
 sendToBuf : (sock : Socket)
          -> (addr : SocketAddress)
          -> (port : Port)
@@ -512,6 +519,7 @@ foreignGetRecvfromPayload (RFPtr p) =
                 p
 
 ||| Utility function to return senders socket address.
+public export
 foreignGetRecvfromAddr : RecvfromStructPtr -> IO SocketAddress
 foreignGetRecvfromAddr (RFPtr p) = do
   sockaddr_ptr <- map SAPtr $ foreign FFI_C "idrnet_get_recvfrom_sockaddr"
@@ -520,6 +528,7 @@ foreignGetRecvfromAddr (RFPtr p) = do
   getSockAddr sockaddr_ptr
 
 ||| Utility function to return sender's IPV4 port.
+public export
 foreignGetRecvfromPort : RecvfromStructPtr -> IO Port
 foreignGetRecvfromPort (RFPtr p) = do
   sockaddr_ptr <- foreign FFI_C "idrnet_get_recvfrom_sockaddr"
@@ -581,6 +590,7 @@ recvFrom sock bl = do
 ||| @ptr  Pointer to the buffer to place the message.
 ||| @len  Size of the expected message.
 |||
+public export
 recvFromBuf : (sock : Socket)
            -> (ptr  : BufPtr)
            -> (len  : ByteLength)

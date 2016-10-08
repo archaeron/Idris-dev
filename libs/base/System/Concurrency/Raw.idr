@@ -38,7 +38,7 @@ private
 sender : Ptr -> IO Ptr
 sender msg = foreign FFI_C "idris_getSender" (Ptr -> IO Ptr) msg
 
-private
+public export
 channel_id : Ptr -> IO Int
 channel_id msg = foreign FFI_C "idris_getChannel" (Ptr -> IO Int) msg
 
